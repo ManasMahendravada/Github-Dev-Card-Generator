@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GitHub Dev Card Generator</title>
+  <link rel="icon" href="https://github.githubassets.com/favicons/favicon.svg" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0d1117; --surface: #161b22; --surface2: #1c2128;
+      --border: #30363d; --border2: #21262d;
+      --text: #e6edf3; --subtext: #8b949e;
+      --green: #238636; --green2: #3fb950;
+      --blue: #1f6feb; --blue2: #388bfd;
+      --red: #da3633; --purple: #8957e5;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'Inter', sans-serif; min-height: 100vh; overflow-x: hidden;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .glow { position: fixed; border-radius: 50%; filter: blur(80px); pointer-events: none; z-index: 0; }
+    .glow-1 { width:400px; height:400px; background:rgba(35,134,54,0.08); top:-100px; left:-100px; }
+    .glow-2 { width:350px; height:350px; background:rgba(31,111,235,0.06); bottom:-80px; right:-80px; }
+    .container { position:relative; z-index:1; max-width:700px; margin:0 auto; padding:40px 24px 80px; }
+
+    /* Header */
+    .header { text-align:center; margin-bottom:40px; }
+    .badge {
+      display:inline-flex; align-items:center; gap:6px;
+      background:rgba(35,134,54,0.12); border:1px solid rgba(35,134,54,0.3);
+      color:var(--green2); font-size:11px; font-weight:700; letter-spacing:1.5px;
+      text-transform:uppercase; padding:5px 14px; border-radius:20px; margin-bottom:20px;
+    }
+    .badge::before { content:'●'; animation: blink 2s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    h1 {
+      font-size: clamp(28px,5vw,48px); font-weight:900; letter-spacing:-1.5px; margin-bottom:12px;
+      background: linear-gradient(135deg, #e6edf3 30%, #8b949e 100%);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+    h1 span {
+      background: linear-gradient(135deg, #3fb950 0%, #1f6feb 100%);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+    .subtitle { color:var(--subtext); font-size:15px; line-height:1.6; max-width:460px; margin:0 auto; }
+
+    /* Features */
+    .features { display:flex; justify-content:center; gap:24px; flex-wrap:wrap; margin-bottom:36px; }
+    .feat { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--subtext); }
+    .feat span { color:var(--green2); }
+
+    /* Search card */
+    .card {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:16px; padding:28px; margin-bottom:20px; position:relative; overflow:hidden;
+    }
+    .card::before {
+      content:''; position:absolute; top:0; left:0; right:0; height:1px;
+      background:linear-gradient(90deg,transparent,rgba(63,185,80,0.5),transparent);
+    }
+    .input-label { display:block; font-size:11px; font-weight:700; color:var(--subtext); letter-spacing:0.5px; text-transform:uppercase; margin-bottom:10px; }
+    .input-row { display:flex; gap:10px; }
+    input[type="text"] {
+      flex:1; padding:12px 14px; background:var(--surface2); border:1px solid var(--border);
+      border-radius:10px; color:var(--text); font-size:15px; font-family:'JetBrains Mono',monospace;
+      outline:none; transition:border-color 0.2s, box-shadow 0.2s;
+    }
+    input[type="text"]::placeholder { color:var(--subtext); font-family:'Inter',sans-serif; }
+    input[type="text"]:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(31,111,235,0.15); }
+    .btn-gen {
+      padding:12px 24px; background:linear-gradient(135deg,var(--green),#2ea043);
+      border:none; border-radius:10px; color:#fff; font-size:14px; font-weight:700;
+      cursor:pointer; transition:all 0.2s; white-space:nowrap; display:flex; align-items:center; gap:8px;
+    }
+    .btn-gen:hover:not(:disabled) { transform:translateY(-1px); box-shadow:0 6px 20px rgba(35,134,54,0.4); }
+    .btn-gen:disabled { opacity:0.6; cursor:not-allowed; }
+    .examples { margin-top:14px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .ex-label { font-size:11px; color:var(--subtext); }
+    .ex-tag {
+      background:var(--surface2); border:1px solid var(--border2); color:var(--subtext);
+      font-size:11px; font-family:'JetBrains Mono',monospace; padding:3px 10px;
+      border-radius:6px; cursor:pointer; transition:all 0.15s;
+    }
+    .ex-tag:hover { border-color:var(--blue); color:var(--blue2); }
+
+    /* Error */
+    .error-box {
+      display:none; background:rgba(218,54,51,0.08); border:1px solid rgba(218,54,51,0.3);
+      border-radius:12px; padding:14px 18px; color:#f85149; font-size:13px; line-height:1.5;
+      margin-bottom:16px; align-items:flex-start; gap:10px;
+    }
+    .error-box.show { display:flex; }
+
+    /* Loading */
+    .loading-box { display:none; margin-bottom:16px; }
+    .loading-box.show { display:block; }
+    .steps { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:24px; margin-bottom:12px; }
+    .step { display:flex; align-items:center; gap:12px; padding:9px 0; border-bottom:1px solid var(--border2); font-size:13px; color:var(--subtext); }
+    .step:last-child { border-bottom:none; }
+    .step-icon { width:28px; height:28px; border-radius:50%; background:var(--surface2); border:2px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0; }
+    .step.active .step-icon { border-color:var(--blue); animation:ring 1s linear infinite; }
+    .step.active { color:var(--text); }
+    .step.done .step-icon { border-color:var(--green); background:rgba(35,134,54,0.15); }
+    .step.done { color:var(--green2); }
+    @keyframes ring { 0%{box-shadow:0 0 0 2px rgba(31,111,235,0.3)} 50%{box-shadow:0 0 0 5px rgba(31,111,235,0.6)} 100%{box-shadow:0 0 0 2px rgba(31,111,235,0.3)} }
+    .skel { border-radius:8px; height:100px; background:linear-gradient(90deg,var(--surface2) 25%,#1e2730 50%,var(--surface2) 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+    /* Result */
+    .result-box { display:none; }
+    .result-box.show { display:block; animation:fadeUp 0.4s ease; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+    .result-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; gap:10px; }
+    .result-label { font-size:13px; font-weight:600; color:var(--subtext); display:flex; align-items:center; gap:6px; }
+    .dot { width:8px; height:8px; border-radius:50%; background:var(--green); box-shadow:0 0 6px rgba(35,134,54,0.8); }
+    .actions { display:flex; gap:8px; flex-wrap:wrap; }
+    .btn-act {
+      padding:7px 14px; border-radius:8px; font-size:12px; font-weight:600;
+      cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:5px;
+      border:1px solid var(--border); background:var(--surface2); color:var(--text);
+    }
+    .btn-act:hover { border-color:var(--blue); color:var(--blue2); }
+    .preview-wrap { background:var(--surface); border:1px solid var(--border); border-radius:16px; overflow:hidden; }
+    .toolbar { background:var(--surface2); border-bottom:1px solid var(--border2); padding:10px 16px; display:flex; align-items:center; gap:8px; }
+    .td { width:12px; height:12px; border-radius:50%; }
+    .td-r{background:#ff5f57} .td-y{background:#febc2e} .td-g{background:#28c840}
+    .tb-url { font-size:11px; color:var(--subtext); font-family:'JetBrains Mono',monospace; margin-left:6px; }
+    .frame-wrap { padding:32px 20px; display:flex; justify-content:center; background:#090d12; }
+    .frame-wrap iframe { border:none; border-radius:20px; width:420px; max-width:100%; height:790px; }
+    .insights { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:20px 24px; margin-top:14px; }
+    .ins-title { font-size:10px; font-weight:700; color:var(--purple); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:14px; }
+    .ins-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; }
+    .ins-item { background:var(--surface2); border:1px solid var(--border2); border-radius:10px; padding:12px 14px; }
+    .ins-key { font-size:10px; font-weight:600; color:var(--subtext); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:4px; }
+    .ins-val { font-size:13px; font-weight:600; color:var(--text); line-height:1.4; }
+
+    /* Toast */
+    .toast {
+      position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(100px);
+      background:var(--surface); border:1px solid var(--border); border-radius:10px;
+      padding:10px 20px; font-size:13px; font-weight:500; color:var(--text);
+      box-shadow:0 8px 32px rgba(0,0,0,0.5); z-index:1000; transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .toast.show { transform:translateX(-50%) translateY(0); }
+
+    @media(max-width:480px) { .input-row{flex-direction:column} .btn-gen{width:100%;justify-content:center} }
+  </style>
+</head>
+<body>
+  <div class="glow glow-1"></div>
+  <div class="glow glow-2"></div>
+  <div class="toast" id="toast"></div>
+
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="badge">AI Powered · Gemini 1.5 Flash</div>
+      <h1>GitHub <span>Dev Card</span> Generator</h1>
+      <p class="subtitle">Paste a GitHub profile URL or enter any username to get a beautiful AI-analyzed developer identity card.</p>
+    </div>
+
+    <!-- Features -->
+    <div class="features">
+      <div class="feat"><span>⚡</span> Real-time GitHub data</div>
+      <div class="feat"><span>🤖</span> AI personality analysis</div>
+      <div class="feat"><span>🎨</span> 5 unique themes</div>
+      <div class="feat"><span>📤</span> Download &amp; share</div>
+    </div>
+
+    <!-- Input -->
+    <div class="card">
+      <label class="input-label" for="uinput">GitHub Username or Profile URL</label>
+      <div class="input-row">
+        <input type="text" id="uinput" placeholder="e.g. torvalds  or  https://github.com/torvalds" autocomplete="off" spellcheck="false" />
+        <button class="btn-gen" id="genbtn">
+          <span id="btn-icon">✨</span>
+          <span id="btn-text">Generate Card</span>
+        </button>
+      </div>
+      <div class="examples">
+        <span class="ex-label">Try:</span>
+        <span class="ex-tag" onclick="quickGen('torvalds')">torvalds</span>
+        <span class="ex-tag" onclick="quickGen('gaearon')">gaearon</span>
+        <span class="ex-tag" onclick="quickGen('sindresorhus')">sindresorhus</span>
+        <span class="ex-tag" onclick="quickGen('addyosmani')">addyosmani</span>
+        <span class="ex-tag" onclick="quickGen('yyx990803')">yyx990803</span>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div class="error-box" id="errbox">
+      <span>⚠️</span>
+      <span id="errmsg"></span>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading-box" id="loadbox">
+      <div class="steps">
+        <div class="step" id="s1"><div class="step-icon" id="si1">🐙</div><span>Fetching GitHub profile &amp; repositories…</span></div>
+        <div class="step" id="s2"><div class="step-icon" id="si2">🤖</div><span>Analyzing developer personality with Gemini AI…</span></div>
+        <div class="step" id="s3"><div class="step-icon" id="si3">🎨</div><span>Generating your themed dev card…</span></div>
+        <div class="step" id="s4"><div class="step-icon" id="si4">💾</div><span>Saving card &amp; preparing result…</span></div>
+      </div>
+      <div class="skel"></div>
+    </div>
+
+    <!-- Result -->
+    <div class="result-box" id="resultbox">
+      <div class="result-top">
+        <div class="result-label"><span class="dot"></span><span id="res-label">Card ready!</span></div>
+        <div class="actions">
+          <button class="btn-act" onclick="openCard()">🔗 Open Full Card</button>
+          <button class="btn-act" onclick="copyURL()">📋 Copy URL</button>
+          <button class="btn-act" onclick="dlCard()">⬇️ Download</button>
+          <button class="btn-act" onclick="resetAll()">↩ New Card</button>
+        </div>
+      </div>
+      <div class="preview-wrap">
+        <div class="toolbar">
+          <div class="td td-r"></div><div class="td td-y"></div><div class="td td-g"></div>
+          <span class="tb-url" id="tb-url">github-dev-card</span>
+        </div>
+        <div class="frame-wrap">
+          <iframe id="cardframe" title="Dev Card Preview" sandbox="allow-same-origin allow-scripts"></iframe>
+        </div>
+      </div>
+      <div class="insights">
+        <div class="ins-title">🤖 Gemini AI Analysis</div>
+        <div class="ins-grid" id="insgrid"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const BACKEND = 'http://127.0.0.1:8080';
+  let cardData = null;
+  let stepTimer = null;
+
+  const inp = document.getElementById('uinput');
+  const btn = document.getElementById('genbtn');
+
+  inp.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') startGenerate();
+  });
+
+  btn.addEventListener('click', function() {
+    startGenerate();
+  });
+
+  function quickGen(name) {
+    inp.value = name;
+    startGenerate();
+  }
+
+  function extractUsername(raw) {
+    raw = raw.trim();
+    // Check if it's a github.com URL
+    var match = raw.match(/github\.com\/([A-Za-z0-9_.\-]+)/);
+    if (match) return match[1];
+    // Plain username, remove leading @
+    return raw.replace(/^@+/, '');
+  }
+
+  async function startGenerate() {
+    var raw = inp.value.trim();
+    if (!raw) {
+      showError('Please enter a GitHub username or profile URL.');
+      return;
+    }
+    var username = extractUsername(raw);
+    if (!username) {
+      showError('Could not extract a username. Please try again.');
+      return;
+    }
+
+    resetUI();
+    setLoading(true);
+    runSteps();
+
+    try {
+      var res = await fetch(BACKEND + '/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username })
+      });
+
+      var data = await res.json();
+      clearSteps();
+
+      if (!res.ok || data.status !== 'success') {
+        var msg = data.detail || data.message || 'Failed to generate card. Please try again.';
+        setLoading(false);
+        showError(msg);
+        return;
+      }
+
+      cardData = data;
+      setLoading(false);
+      showResult(data);
+
+    } catch (err) {
+      clearSteps();
+      setLoading(false);
+      if (err.message && err.message.indexOf('fetch') !== -1) {
+        showError('Cannot connect to backend. Make sure the server is running at ' + BACKEND);
+      } else {
+        showError('Error: ' + err.message);
+      }
+    }
+  }
+
+  // Step animation
+  var STEPS = ['s1','s2','s3','s4'];
+  var ICONS = ['si1','si2','si3','si4'];
+
+  function runSteps() {
+    STEPS.forEach(function(id) {
+      var el = document.getElementById(id);
+      el.classList.remove('active','done');
+    });
+    activateStep(0);
+  }
+
+  function activateStep(i) {
+    if (i >= STEPS.length) return;
+    document.getElementById(STEPS[i]).classList.add('active');
+    stepTimer = setTimeout(function() {
+      document.getElementById(STEPS[i]).classList.remove('active');
+      document.getElementById(STEPS[i]).classList.add('done');
+      document.getElementById(ICONS[i]).textContent = '✓';
+      activateStep(i + 1);
+    }, i === 1 ? 3000 : 1000);
+  }
+
+  function clearSteps() {
+    clearTimeout(stepTimer);
+    STEPS.forEach(function(id, i) {
+      document.getElementById(id).classList.remove('active');
+      document.getElementById(id).classList.add('done');
+      document.getElementById(ICONS[i]).textContent = '✓';
+    });
+  }
+
+  // UI state
+  function resetUI() {
+    document.getElementById('errbox').classList.remove('show');
+    document.getElementById('resultbox').classList.remove('show');
+  }
+
+  function setLoading(on) {
+    document.getElementById('loadbox').classList.toggle('show', on);
+    btn.disabled = on;
+    document.getElementById('btn-text').textContent = on ? 'Generating…' : 'Generate Card';
+    document.getElementById('btn-icon').textContent = on ? '⏳' : '✨';
+  }
+
+  function showError(msg) {
+    document.getElementById('errmsg').textContent = msg;
+    document.getElementById('errbox').classList.add('show');
+  }
+
+  function showResult(data) {
+    var rb = document.getElementById('resultbox');
+    rb.classList.add('show');
+    document.getElementById('res-label').textContent = 'Card generated for @' + data.username;
+    document.getElementById('tb-url').textContent = '127.0.0.1:8080/card/' + data.username;
+    document.getElementById('cardframe').srcdoc = data.card_html;
+    renderInsights(data.analysis, data.github_data);
+    rb.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function renderInsights(a, g) {
+    var themes = { hacker:'🖥️ Hacker', builder:'🔨 Builder', researcher:'🔬 Researcher', designer:'🎨 Designer', 'open-source-hero':'🦸 OSS Hero' };
+    var items = [
+      { k:'Developer Vibe', v: a.developer_vibe || '—' },
+      { k:'Card Theme',     v: themes[a.card_theme] || a.card_theme },
+      { k:'Expertise',      v: a.expertise_level || '—' },
+      { k:'Superpower',     v: '⚡ ' + (a.superpower || '—') },
+      { k:'Achievement',    v: '🏆 ' + (a.achievement || '—') },
+      { k:'Fun Fact',       v: '💡 ' + (a.fun_fact || '—') },
+      { k:'Languages',      v: a.languages_summary || '—' },
+      { k:'Total Stars',    v: '⭐ ' + (g.total_stars || 0).toLocaleString() },
+    ];
+    var grid = document.getElementById('insgrid');
+    grid.innerHTML = items.map(function(it) {
+      return '<div class="ins-item"><div class="ins-key">' + it.k + '</div><div class="ins-val">' + it.v + '</div></div>';
+    }).join('');
+  }
+
+  function resetAll() {
+    resetUI();
+    inp.value = '';
+    btn.disabled = false;
+    document.getElementById('btn-text').textContent = 'Generate Card';
+    document.getElementById('btn-icon').textContent = '✨';
+    inp.focus();
+  }
+
+  function openCard() {
+    if (cardData) window.open(BACKEND + '/card/' + cardData.username, '_blank');
+  }
+
+  function copyURL() {
+    if (!cardData) return;
+    var url = BACKEND + '/card/' + cardData.username;
+    navigator.clipboard.writeText(url).then(function() {
+      toast('✅ URL copied!');
+    }).catch(function() {
+      toast('URL: ' + url);
+    });
+  }
+
+  function dlCard() {
+    if (!cardData) return;
+    var blob = new Blob([cardData.card_html], { type: 'text/html' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = cardData.username + '-dev-card.html';
+    a.click(); URL.revokeObjectURL(url);
+    toast('⬇️ Downloaded!');
+  }
+
+  var toastT;
+  function toast(msg) {
+    var el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastT);
+    toastT = setTimeout(function() { el.classList.remove('show'); }, 2800);
+  }
+</script>
+</body>
+</html>
